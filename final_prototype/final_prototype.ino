@@ -3,24 +3,27 @@
 #include <Servo.h>
 #include "MedianFilterLib.h"
 #include "led_panel.h"
+#include "led_matrix.h"
 
-#define PIN_SERVO 6
+#define PIN_SERVO_LEFT 6
+#define PIN_SERVO_RIGHT 7
 #define SENSOR_STATUS_VALID 0
 #define RANGE_TRESHOLD_MM 150
 
-#define PIN_LED 7
-#define LED_COUNT 23
+#define PIN_LED 8
+#define LED_COUNT 14
 
-#define SERVO_POS_OPEN 80
-#define SERVO_POS_CLOSED 0
+#define SERVO_POS_OPEN 85
+#define SERVO_POS_CLOSED 5
 
-Servo servo;
+Servo servo_left;
+Servo servo_right;
 VL53L1X sensor;
 int pos = 0;
 LEDPanel panel(PIN_LED, LED_COUNT);
+LEDMatrix matrix;
 
 void setup() {
-  servo.attach(PIN_SERVO);
   Serial.begin(115200);
   Wire.begin();
   Wire.setClock(400000);  // use 400 kHz I2C
@@ -45,6 +48,12 @@ void setup() {
   sensor.startContinuous(50);
 
   panel.init();
+  matrix.init();
+  //matrix.drawBox();
+
+  servo_left.attach(PIN_SERVO_LEFT);
+  servo_right.attach(PIN_SERVO_RIGHT);
+  setServoPos(SERVO_POS_CLOSED);
 }
 
 void loop() {
@@ -52,21 +61,29 @@ void loop() {
   
   if (sensor.dataReady()) {
     sensor.read(false); //read without blocking
-    Serial.println(sensor.ranging_data.range_mm);
+    //Serial.println(sensor.ranging_data.range_mm);
     if (sensor.ranging_data.range_mm <= RANGE_TRESHOLD_MM) {
       setServoPos(SERVO_POS_OPEN);
       panel.activate();
+      //matrix.fillAll();
+      matrix.drawBox();
+      //matrix.clear();
     } else {
       setServoPos(SERVO_POS_CLOSED);
       panel.deactivate();
+      //matrix.clear();
+      matrix.fillAll();
     }
     sensor.read(false); //read without blocking
   }
+
+  matrix.update();
 }
 
 void setServoPos(int newPos) {
   if (pos != newPos) {
     pos = newPos;
-    servo.write(pos);
+    servo_left.write(pos);
+    servo_right.write(-pos);
   }
 }
