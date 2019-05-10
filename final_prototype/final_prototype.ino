@@ -13,6 +13,8 @@
 #define PIN_LED 8
 #define LED_COUNT 14
 
+#define PIN_DISPLAY 4
+
 #define SERVO_POS_OPEN 85
 #define SERVO_POS_CLOSED 5
 
@@ -27,6 +29,9 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
   Wire.setClock(400000);  // use 400 kHz I2C
+
+  pinMode(PIN_DISPLAY, OUTPUT);
+  digitalWrite(PIN_DISPLAY, LOW);
 
   sensor.setTimeout(500);
   if (!sensor.init()) {
@@ -48,8 +53,8 @@ void setup() {
   sensor.startContinuous(50);
 
   panel.init();
-  matrix.init();
-  matrix.setContentStatus(CONTENT_BOX);
+  //matrix.init();
+  //matrix.setContentStatus(CONTENT_BOX);
 
   servo_left.attach(PIN_SERVO_LEFT);
   servo_right.attach(PIN_SERVO_RIGHT);
@@ -70,12 +75,16 @@ void loop() {
       //matrix.drawBox();
       //matrix.clear();
       matrix.setContentStatus(CONTENT_SIGN);
+
+      digitalWrite(PIN_DISPLAY, HIGH);
     } else {
       setServoPos(SERVO_POS_CLOSED);
       panel.deactivate();
       //matrix.clear();
       //matrix.fillAll();
       matrix.setContentStatus(CONTENT_BOX);
+
+      digitalWrite(PIN_DISPLAY, LOW);
     }
     sensor.read(false); //read without blocking
   }
@@ -86,7 +95,7 @@ void loop() {
   delay(50);
   matrix.setContentStatus(CONTENT_SIGN);
   */
-  matrix.update();
+  //matrix.update();
 }
 
 void setServoPos(int newPos) {
