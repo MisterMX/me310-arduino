@@ -49,7 +49,7 @@ void setup() {
 
   panel.init();
   matrix.init();
-  //matrix.drawBox();
+  matrix.setContentStatus(CONTENT_BOX);
 
   servo_left.attach(PIN_SERVO_LEFT);
   servo_right.attach(PIN_SERVO_RIGHT);
@@ -58,7 +58,8 @@ void setup() {
 
 void loop() {
   panel.update();
-  
+
+
   if (sensor.dataReady()) {
     sensor.read(false); //read without blocking
     //Serial.println(sensor.ranging_data.range_mm);
@@ -66,17 +67,25 @@ void loop() {
       setServoPos(SERVO_POS_OPEN);
       panel.activate();
       //matrix.fillAll();
-      matrix.drawBox();
+      //matrix.drawBox();
       //matrix.clear();
+      matrix.setContentStatus(CONTENT_SIGN);
     } else {
       setServoPos(SERVO_POS_CLOSED);
       panel.deactivate();
       //matrix.clear();
-      matrix.fillAll();
+      //matrix.fillAll();
+      matrix.setContentStatus(CONTENT_BOX);
     }
     sensor.read(false); //read without blocking
   }
-
+  
+  /*
+  matrix.setContentStatus(CONTENT_BOX);
+  matrix.update();
+  delay(50);
+  matrix.setContentStatus(CONTENT_SIGN);
+  */
   matrix.update();
 }
 
