@@ -5,33 +5,40 @@
 #include "led_panel.h"
 #include "led_matrix.h"
 
-#define PIN_SERVO_LEFT 6
-#define PIN_SERVO_RIGHT 7
+#define PIN_SERVO_LEFT 5
+#define PIN_SERVO_RIGHT 6
 #define SENSOR_STATUS_VALID 0
 #define RANGE_TRESHOLD_MM 150
 
-#define PIN_LED 8
+#define PIN_LED 7
 #define LED_COUNT 14
 
 #define PIN_DISPLAY 4
+#define LED_DISPLAY_I2C_ADDRESS 128
 
-#define SERVO_POS_OPEN 85
-#define SERVO_POS_CLOSED 5
+#define SERVO_LEFT_POS_OPEN 70
+#define SERVO_LEFT_POS_CLOSED 0
+
+#define SERVO_RIGHT_POS_OPEN 0
+#define SERVO_RIGHT_POS_CLOSED 70
+
+#define WING_STATE_OPEN 1
+#define WING_STATE_CLOSED 2
 
 Servo servo_left;
 Servo servo_right;
 VL53L1X sensor;
-int pos = 0;
+uint8_t wingState = -1;
 LEDPanel panel(PIN_LED, LED_COUNT);
-LEDMatrix matrix;
+//LEDMatrix matrix;
 
 void setup() {
   Serial.begin(115200);
   Wire.begin();
   Wire.setClock(400000);  // use 400 kHz I2C
 
-  pinMode(PIN_DISPLAY, OUTPUT);
-  digitalWrite(PIN_DISPLAY, LOW);
+  //pinMode(PIN_DISPLAY, OUTPUT);
+  //digitalWrite(PIN_DISPLAY, LOW);
 
   sensor.setTimeout(500);
   if (!sensor.init()) {
@@ -58,33 +65,32 @@ void setup() {
 
   servo_left.attach(PIN_SERVO_LEFT);
   servo_right.attach(PIN_SERVO_RIGHT);
-  setServoPos(SERVO_POS_CLOSED);
+  setWingState(WING_STATE_CLOSED);
 }
 
 void loop() {
   panel.update();
 
-
   if (sensor.dataReady()) {
     sensor.read(false); //read without blocking
-    //Serial.println(sensor.ranging_data.range_mm);
+    Serial.println(sensor.ranging_data.range_mm);
     if (sensor.ranging_data.range_mm <= RANGE_TRESHOLD_MM) {
-      setServoPos(SERVO_POS_OPEN);
+      sendToSlave(1);
+      setWingState(WING_STATE_OPEN);
       panel.activate();
       //matrix.fillAll();
       //matrix.drawBox();
       //matrix.clear();
-      matrix.setContentStatus(CONTENT_SIGN);
-
-      digitalWrite(PIN_DISPLAY, HIGH);
+      //matrix.setContentStatus(CONTENT_SIGN);
+      //digitalWrite(PIN_DISPLAY, HIGH);
     } else {
-      setServoPos(SERVO_POS_CLOSED);
+      sendToSlave(0);
+      setWingState(WING_STATE_CLOSED);
       panel.deactivate();
       //matrix.clear();
       //matrix.fillAll();
-      matrix.setContentStatus(CONTENT_BOX);
-
-      digitalWrite(PIN_DISPLAY, LOW);
+      //matrix.setContentStatus(CONTENT_BOX);
+      //digitalWrite(PIN_DISPLAY, LOW);
     }
     sensor.read(false); //read without blocking
   }
@@ -98,10 +104,21 @@ void loop() {
   //matrix.update();
 }
 
-void setServoPos(int newPos) {
-  if (pos != newPos) {
-    pos = newPos;
-    servo_left.write(pos);
-    servo_right.write(-pos);
+void sendToSlave(byte b) {
+  Wire.beginTransmission(LED_DISPLAY_I2C_ADDRESS);
+  Wire.write(b);
+  Wire.endTransmission();
+}
+
+void setWingState(uint8_t newState) {
+  if (wingState != newState) {
+    wingState = newState;
+    if (wingState == WING_STATE_OPEN) {
+      servo_left.write(SERVO_LEFT_POS_OPEN);
+      servo_right.write(SERVO_RIGHT_POS_OPEN);
+    } else {
+      servo_left.write(SERVO_LEFT_POS_CLOSED);
+      servo_right.write(SERVO_RIGHT_POS_CLOSED);
+    }
   }
 }
