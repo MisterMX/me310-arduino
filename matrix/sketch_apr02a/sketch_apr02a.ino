@@ -17,7 +17,7 @@
 
 // Define the number of devices we have in the chain and the hardware interface
 #define HARDWARE_TYPE MD_MAX72XX::PAROLA_HW
-#define MAX_DEVICES 8
+#define MAX_DEVICES 12
 
 #define PIN_DATA 10
 #define PIN_CS 11
@@ -38,7 +38,7 @@ struct LineDefinition
 // need to be adapted
 struct LineDefinition  Line[] =
 {
-  { MD_MAX72XX(HARDWARE_TYPE, PIN_DATA, PIN_CLK, PIN_CS, MAX_DEVICES), "W O W ! = = = <", true },
+  { MD_MAX72XX(HARDWARE_TYPE, PIN_DATA, PIN_CLK, PIN_CS, MAX_DEVICES), "S T A YA W A Y <====", true },
   { MD_MAX72XX(HARDWARE_TYPE, 11, 13, 10, MAX_DEVICES), "", true }
 };
 
@@ -81,7 +81,7 @@ void printText(uint8_t lineID, uint8_t modStart, uint8_t modEnd, char *pMsg)
 {
   uint8_t   state = 0;
   uint8_t   curLen;
-  uint16_t  showLen;
+  uint8_t  showLen;
   uint8_t   cBuf[8];
   int16_t   col = ((modEnd + 1) * COL_SIZE) - 1;
 
@@ -95,37 +95,42 @@ void printText(uint8_t lineID, uint8_t modStart, uint8_t modEnd, char *pMsg)
         // if we reached end of message, reset the message pointer
         if (*pMsg == '\0')
         {
-          showLen = col - (modEnd * COL_SIZE);  // padding characters
+          showLen = (uint8_t)(col - (modEnd * COL_SIZE));  // padding characters
+          curLen = showLen;
           state = 2;
           break;
         }
 
         // retrieve the next character form the font file
-        showLen = Line[lineID].mx.getChar(*pMsg++, sizeof(cBuf)/sizeof(cBuf[0]), cBuf);
-        curLen = 0;
+        showLen = Line[lineID].mx.getChar(*pMsg++, sizeof(cBuf) / sizeof(cBuf[0]), cBuf);
+        curLen = showLen;
         state++;
         // !! deliberately fall through to next state to start displaying
 
       case 1: // display the next part of the character
-        Line[lineID].mx.setColumn(col--, cBuf[curLen++]);
+        // Line[lineID].mx.setColumn(col--, cBuf[curLen++]);
+        Serial.println(showLen - curLen);
+        Line[lineID].mx.setColumn(col--, cBuf[curLen - 1]);
+        curLen--;
 
         // done with font character, now display the space between chars
-        if (curLen == showLen)
+        if (curLen == 0)
         {
           showLen = CHAR_SPACING;
+          curLen = showLen;
           state = 2;
         }
         break;
 
       case 2: // initialize state for displaying empty columns
-        curLen = 0;
+        //curLen = 0;
         state++;
         // fall through
 
       case 3: // display inter-character spacing or end of message padding (blank columns)
         Line[lineID].mx.setColumn(col--, 0);
-        curLen++;
-        if (curLen == showLen)
+        curLen--;
+        if (curLen == 0)
           state = 0;
         break;
 
