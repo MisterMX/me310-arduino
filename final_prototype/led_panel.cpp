@@ -33,27 +33,7 @@ LEDPanel::update() {
 }
 
 LEDPanel::render() {
-  //int maxPixel = max(this->pixelCount, this->fragmentOffset + fragmentLength + 1);
-  //this->strip.fill(this->offColor, 0, this->pixelCount);
-  /*
-  for (int i = 0; i < maxPixel; i++) {
-    this->strip.setPixelColor(i, this->onColor);
-  }
-  */
-
   for (int i = 0; i < pixelCount; i++) {
-    /*
-    if (i == fragmentPosition - 1) {
-      strip.setPixelColor(i, fadeColor);
-    } else if (i == fragmentPosition) {
-      strip.setPixelColor(i, onColor);
-    } else if (i == fragmentPosition + 1) {
-      strip.setPixelColor(i, fadeColor);
-    } else {
-      strip.setPixelColor(i, offColor);
-    }
-    */
-
     if (i < fragmentPosition) {
       strip.setPixelColor(i, onColor);
     } else {
