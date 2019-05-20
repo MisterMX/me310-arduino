@@ -1,6 +1,8 @@
 #include <Adafruit_NeoPixel.h>
 
 #define COLOR uint32_t
+#define LED_PANEL_INITIAL_FRAGMENT_POS -5
+#define LED_PANEL_FRAGMENT_OVERSET 5
 
 class LEDPanel {
     public:
@@ -20,7 +22,8 @@ class LEDPanel {
         bool isActive = false;
         int ledPin;
         int pixelCount;
-        int fragmentPosition = 0;
+        int fragmentPosition = LED_PANEL_INITIAL_FRAGMENT_POS;
+        int maxFragmentPosition;
         bool backward = false;
         int fragmentLength = 3;
         long timePerFrameMs = 30;

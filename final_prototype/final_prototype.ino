@@ -8,7 +8,7 @@
 #define PIN_SERVO_LEFT 5
 #define PIN_SERVO_RIGHT 6
 #define SENSOR_STATUS_VALID 0
-#define RANGE_TRESHOLD_MM 150
+#define RANGE_TRESHOLD_MM 2000
 
 #define PIN_LED 7
 #define LED_COUNT 14
@@ -52,12 +52,12 @@ void setup() {
   // medium and long distance modes. See the VL53L1X datasheet for more
   // information on range and timing limits.
   sensor.setDistanceMode(VL53L1X::Long);
-  sensor.setMeasurementTimingBudget(50000);
+  sensor.setMeasurementTimingBudget(120000);
 
   // Start continuous readings at a rate of one measurement every 50 ms (the
   // inter-measurement period). This period should be at least as long as the
   // timing budget.
-  sensor.startContinuous(50);
+  sensor.startContinuous(120);
 
   panel.init();
   //matrix.init();
@@ -74,7 +74,7 @@ void loop() {
   if (sensor.dataReady()) {
     sensor.read(false); //read without blocking
     Serial.println(sensor.ranging_data.range_mm);
-    if (sensor.ranging_data.range_mm <= RANGE_TRESHOLD_MM) {
+    if (sensor.ranging_data.range_status == 0 && sensor.ranging_data.range_mm <= RANGE_TRESHOLD_MM) {
       sendToSlave(1);
       setWingState(WING_STATE_OPEN);
       panel.activate();

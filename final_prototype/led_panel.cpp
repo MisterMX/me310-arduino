@@ -7,6 +7,7 @@ LEDPanel::LEDPanel(int ledPin, int pixelCount) {
     this->offColor = this->strip.Color(0, 0, 0);
     this->onColor = this->strip.Color(255, 0, 0);
     this->fadeColor = this->strip.Color(255, 0, 0, 125);
+    maxFragmentPosition = pixelCount + LED_PANEL_FRAGMENT_OVERSET;
 }
 
 LEDPanel::init() {
@@ -20,8 +21,8 @@ LEDPanel::update() {
 
     long elapsedTime = currentTime - lastFrameTimeMs;
     if (elapsedTime >= timePerFrameMs) {
-      fragmentPosition = fragmentPosition >= pixelCount
-        ? 0
+      fragmentPosition = fragmentPosition > maxFragmentPosition
+        ? LED_PANEL_INITIAL_FRAGMENT_POS
         : fragmentPosition + 1;
       
       render();
@@ -64,7 +65,7 @@ LEDPanel::render() {
 }
 
 LEDPanel::reset() {
-  fragmentPosition = 0;
+  fragmentPosition = LED_PANEL_INITIAL_FRAGMENT_POS;
   strip.fill(offColor, 0, pixelCount);
   strip.show();
 }
