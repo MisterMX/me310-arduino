@@ -2,6 +2,7 @@
 #include <VL53L1X.h>
 #include <Servo.h>
 #include "led_panel.h"
+#include "SensorController.h"
 
 #define PIN_SERVO_LEFT 5
 #define PIN_SERVO_RIGHT 6
@@ -25,34 +26,18 @@
 
 Servo servo_left;
 Servo servo_right;
-VL53L1X sensor;
+SensorController sensor;
 uint8_t wingState = WING_STATE_UNDEF;
 LEDPanel panel(PIN_LED, LED_COUNT);
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("Setup");
+  
   Wire.begin();
   Wire.setClock(400000);  // use 400 kHz I2C
-
-  sensor.setTimeout(500);
-  if (!sensor.init()) {
-    Serial.println("Failed to detect and initialize sensor!");
-    while (1);
-  }
   
-  // Use long distance mode and allow up to 50000 us (50 ms) for a measurement.
-  // You can change these settings to adjust the performance of the sensor, but
-  // the minimum timing budget is 20 ms for short distance mode and 33 ms for
-  // medium and long distance modes. See the VL53L1X datasheet for more
-  // information on range and timing limits.
-  sensor.setDistanceMode(VL53L1X::Long);
-  sensor.setMeasurementTimingBudget(120000);
-
-  // Start continuous readings at a rate of one measurement every 50 ms (the
-  // inter-measurement period). This period should be at least as long as the
-  // timing budget.
-  sensor.startContinuous(120);
-
+  sensor.init();
   panel.init();
 
   servo_left.attach(PIN_SERVO_LEFT);
@@ -64,9 +49,9 @@ void loop() {
   panel.update();
 
   if (sensor.dataReady()) {
-    sensor.read(false); //read without blocking
-    Serial.println(sensor.ranging_data.range_mm);
-    if (sensor.ranging_data.range_status == 0 && sensor.ranging_data.range_mm <= RANGE_TRESHOLD_MM) {
+    long currentDistance = sensor.getDistanceMm();
+    Serial.println(currentDistance);
+    if (currentDistance <= RANGE_TRESHOLD_MM) {
       sendToSlave(1);
       setWingState(WING_STATE_OPEN);
       panel.activate();
@@ -75,7 +60,6 @@ void loop() {
       setWingState(WING_STATE_CLOSED);
       panel.deactivate();
     }
-    sensor.read(false); //read without blocking
   }
 }
 
