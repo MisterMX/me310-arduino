@@ -1,5 +1,4 @@
 
-//#include <LedControl.h>   //LedControl library: https://www.electronoobs.com/ledcontrol.php
 #include <MD_MAX72xx.h>
 #include <SPI.h>
 #include <Wire.h>
@@ -24,7 +23,6 @@
 
 MD_MAX72XX lc = MD_MAX72XX(HARDWARE_TYPE, PIN_CS, MAX_DEVICES);
 
-//uint8_t pixels_box[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 uint8_t pixels_sign[48]  = { 0, 0, 0, 0, 0x80, 0xC0, 0x60, 0x30, 0x18, 0x0C, 0x06, 0xFB, 0xFB, 0x06, 0x0C, 0x18, 0x30,0x60, 0xC0, 0x80, 0, 0, 0, 0,
                            0xF8, 0xFC, 0xC6, 0xC3, 0xC1, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xDB, 0xDB, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC0, 0xC1, 0xC3, 0xC6, 0xFC, 0xF8};
 
@@ -32,17 +30,6 @@ uint8_t currentState = STATE_NONE;
 
 void setup()
 {
-  //pinMode(PIN_SIGNAL, INPUT);
-
-  /*
-  for (int x=0; x<MAX_DEVICES; x++)
-  {
-    lc.shutdown(x,false);       //The MAX72XX is in power-saving mode on startup
-    lc.setIntensity(x,8);       // Set the brightness to default value
-    lc.clearDisplay(x);         // and clear the display
-  }
-  */
-
   Wire.begin(I2C_ADDRESS);
   Wire.onReceive(onReceive);
 
