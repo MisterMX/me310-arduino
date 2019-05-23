@@ -4,9 +4,16 @@ extern "C" {
 }
 #include <VL53L1X.h>
 
-#define I2C_ADDR_MIN 8
-#define I2C_ADDR_MAX 119
+#define I2C_ADDR_MIN 0
+#define I2C_ADDR_MAX 128
 #define I2C_MAX_DEVICE_COUNT 4
+
+struct RegisteredSensor {
+  public:
+    VL53L1X* sensor;
+    uint8_t tcaIndex;
+    uint8_t i2cAddress;
+};
 
 class SensorController {
   public:
@@ -17,8 +24,9 @@ class SensorController {
 
   private:
     void scanI2C();
-    void i2CDeviceFound(byte address);
+    void i2CDeviceFound(uint8_t tcaIndex, uint8_t i2cAddress);
+    void tcaselect(uint8_t iDevice);
 
     uint8_t sensorCount = 0;
-    VL53L1X* sensors[I2C_MAX_DEVICE_COUNT];
+    RegisteredSensor sensors[I2C_MAX_DEVICE_COUNT];
 };

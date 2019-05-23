@@ -32,6 +32,7 @@ LEDPanel panel(PIN_LED, LED_COUNT);
 
 void setup() {
   Serial.begin(115200);
+  delay(3000);
   Serial.println("Setup");
   
   Wire.begin();

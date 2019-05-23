@@ -1,5 +1,7 @@
 #include "SensorController.h"
 
+#define TCAADDR 0x70
+
 SensorController::SensorController() {
 }
 
@@ -8,23 +10,42 @@ void SensorController::init() {
 }
 
 void SensorController::scanI2C() {
-  byte rc;
-  byte data = 0; // not used, just an address to feed to twi_writeTo()
-  for(byte addr = I2C_ADDR_MIN; addr <= I2C_ADDR_MAX && sensorCount < I2C_MAX_DEVICE_COUNT; addr++) {
-    rc = twi_writeTo(addr, &data, 0, 1, 0);
-    if (rc == 0) {
-      i2CDeviceFound(addr);
-    }
+  /*
+  for(uint8_t i = 0; i < 8; i++) {
+    selectDevice(i);
+    i2CDeviceFound(i);
   }
+  */
+
+  for (uint8_t t=0; t<8; t++) {
+      tcaselect(t);
+      Serial.print("TCA Port #"); Serial.println(t);
+ 
+      for (uint8_t addr = 0; addr <= 127; addr++) {
+        if (addr == TCAADDR) {
+          continue;
+        }
+
+        uint8_t data;
+        if (! twi_writeTo(addr, &data, 0, 1, 1)) {
+           Serial.print("Found I2C 0x");  Serial.println(addr, HEX);
+           i2CDeviceFound(t, addr);
+        }
+      }
+  }
+  Serial.println("\ndone");
 }
 
-void SensorController::i2CDeviceFound(byte address) {
-  Serial.print("Found device on address ");
-  Serial.println(address);
+void SensorController::i2CDeviceFound(uint8_t tcaIndex, uint8_t i2cAddress) {
+  if (sensorCount >= I2C_MAX_DEVICE_COUNT) {
+    return;
+  }
 
   VL53L1X* sensor = new VL53L1X();
+  sensor->setAddress(i2cAddress);
   sensor->setTimeout(500);
   if (sensor->init()) {
+    Serial.print("Success");
     // Use long distance mode and allow up to 50000 us (50 ms) for a measurement.
     // You can change these settings to adjust the performance of the sensor, but
     // the minimum timing budget is 20 ms for short distance mode and 33 ms for
@@ -38,16 +59,26 @@ void SensorController::i2CDeviceFound(byte address) {
     // timing budget.
     sensor->startContinuous(120);
 
-    sensors[sensorCount] = sensor;
+    RegisteredSensor registered;
+    registered.sensor = sensor;
+    registered.tcaIndex = tcaIndex;
+    registered.i2cAddress = i2cAddress;
+
+    sensors[sensorCount] = registered;
+    
     sensorCount++;
   } else {
-    Serial.println("Failed to initialize.");
+    //Serial.println("Failed to initialize.");
   }
 }
 
 bool SensorController::dataReady() {
   for (uint8_t i = 0; i < sensorCount; i++) {
-    if (sensors[i]->dataReady()) {
+    RegisteredSensor registered = sensors[i];
+    VL53L1X* sensor = registered.sensor;
+    tcaselect(registered.tcaIndex);
+    
+    if (sensor->dataReady()) {
       return true;
     }
   }
@@ -58,7 +89,9 @@ bool SensorController::dataReady() {
 long SensorController::getDistanceMm() {
   long nearestDistance = 1000000;
   for (uint8_t i = 0; i < sensorCount; i++) {
-    VL53L1X* sensor = sensors[i] ;
+    RegisteredSensor registered = sensors[i];
+    VL53L1X* sensor = registered.sensor;
+    tcaselect(registered.tcaIndex);
     sensor->read(false); // read without blocking
     if (sensor->ranging_data.range_status) {
       nearestDistance = min(nearestDistance, sensor->ranging_data.range_mm);
@@ -66,4 +99,12 @@ long SensorController::getDistanceMm() {
   }
 
   return nearestDistance;
+}
+
+void SensorController::tcaselect(uint8_t i) {
+  if (i > 7) return;
+ 
+  Wire.beginTransmission(TCAADDR);
+  Wire.write(1 << i);
+  Wire.endTransmission();  
 }
