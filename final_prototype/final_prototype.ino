@@ -53,13 +53,13 @@ void loop() {
     long currentDistance = sensor.getDistanceMm();
     Serial.println(currentDistance);
     if (currentDistance <= RANGE_TRESHOLD_MM) {
-      sendToSlave(1);
+      //sendToSlave(1);
       setWingState(WING_STATE_OPEN);
-      panel.activate();
+      //panel.activate();
     } else {
-      sendToSlave(0);
+      //sendToSlave(0);
       setWingState(WING_STATE_CLOSED);
-      panel.deactivate();
+      //panel.deactivate();
     }
   }
 }
@@ -76,9 +76,11 @@ void setWingState(uint8_t newState) {
     if (wingState == WING_STATE_OPEN) {
       servo_left.write(SERVO_LEFT_POS_OPEN);
       servo_right.write(SERVO_RIGHT_POS_OPEN);
+      panel.activate();
     } else {
       servo_left.write(SERVO_LEFT_POS_CLOSED);
       servo_right.write(SERVO_RIGHT_POS_CLOSED);
+      panel.deactivate();
     }
   }
 }

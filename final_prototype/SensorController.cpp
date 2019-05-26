@@ -34,6 +34,9 @@ void SensorController::scanI2C() {
       }
   }
   Serial.println("\ndone");
+  Serial.print("Registered ");
+  Serial.print(sensorCount);
+  Serial.println(" sensor(s)");
 }
 
 void SensorController::i2CDeviceFound(uint8_t tcaIndex, uint8_t i2cAddress) {
@@ -76,8 +79,8 @@ bool SensorController::dataReady() {
   for (uint8_t i = 0; i < sensorCount; i++) {
     RegisteredSensor registered = sensors[i];
     VL53L1X* sensor = registered.sensor;
-    tcaselect(registered.tcaIndex);
     
+    tcaselect(registered.tcaIndex);
     if (sensor->dataReady()) {
       return true;
     }
@@ -91,10 +94,17 @@ long SensorController::getDistanceMm() {
   for (uint8_t i = 0; i < sensorCount; i++) {
     RegisteredSensor registered = sensors[i];
     VL53L1X* sensor = registered.sensor;
+
     tcaselect(registered.tcaIndex);
-    sensor->read(false); // read without blocking
-    if (sensor->ranging_data.range_status) {
-      nearestDistance = min(nearestDistance, sensor->ranging_data.range_mm);
+    
+    if (sensor->dataReady()) {
+      uint16_t distance = sensor->readRangeContinuousMillimeters(false); // read without blocking
+      //if (sensor->ranging_data.range_status == 0) {
+        //Serial.println(sensor->ranging_data.range_mm);
+        //Serial.println(distance);
+        nearestDistance = min(nearestDistance, distance);
+      //}
+      //sensor->read(false); // read without blocking
     }
   }
 
