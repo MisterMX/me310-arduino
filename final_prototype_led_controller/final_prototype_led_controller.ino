@@ -3,6 +3,7 @@
 #include <MD_MAX72xx.h>
 #include <SPI.h>
 #include <Wire.h>
+#include "led_panel.h"
 
 #define MAX_DEVICES 6
 #define PIXEL_PER_DEVICE 8
@@ -14,6 +15,9 @@
 #define PIN_CS    10  // or SS
 //#define PIN_SIGNAL 4
 
+#define PIN_LED 7
+#define LED_COUNT 14
+
 #define STATE_NONE 0
 #define STATE_SIGN 1
 #define STATE_BOX 2
@@ -23,6 +27,7 @@
 #define HARDWARE_TYPE MD_MAX72XX::PAROLA_HW
 
 MD_MAX72XX lc = MD_MAX72XX(HARDWARE_TYPE, PIN_CS, MAX_DEVICES);
+LEDPanel panel(PIN_LED, LED_COUNT);
 
 //uint8_t pixels_box[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 uint8_t pixels_sign[48]  = { 0, 0, 0, 0, 0x80, 0xC0, 0x60, 0x30, 0x18, 0x0C, 0x06, 0xFB, 0xFB, 0x06, 0x0C, 0x18, 0x30,0x60, 0xC0, 0x80, 0, 0, 0, 0,
@@ -32,33 +37,28 @@ uint8_t currentState = STATE_NONE;
 
 void setup()
 {
-  //pinMode(PIN_SIGNAL, INPUT);
-
-  /*
-  for (int x=0; x<MAX_DEVICES; x++)
-  {
-    lc.shutdown(x,false);       //The MAX72XX is in power-saving mode on startup
-    lc.setIntensity(x,8);       // Set the brightness to default value
-    lc.clearDisplay(x);         // and clear the display
-  }
-  */
-
   Wire.begin(I2C_ADDRESS);
   Wire.onReceive(onReceive);
+
+  panel.init();
 
   lc.begin();
   setState(STATE_BOX);
 }
 
-void loop() {}
+void loop() {
+  panel.update();
+}
 
 void onReceive(int howMany) {
   if (howMany >= 1) {
     char c = Wire.read();
     if (c == 1) {
       setState(STATE_SIGN);
+      panel.activate();
     } else {
       setState(STATE_BOX);
+      panel.deactivate();
     }
   }
 }

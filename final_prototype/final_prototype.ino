@@ -28,7 +28,7 @@ Servo servo_left;
 Servo servo_right;
 SensorController sensor;
 uint8_t wingState = WING_STATE_UNDEF;
-LEDPanel panel(PIN_LED, LED_COUNT);
+//LEDPanel panel(PIN_LED, LED_COUNT);
 
 void setup() {
   Serial.begin(115200);
@@ -39,7 +39,7 @@ void setup() {
   Wire.setClock(400000);  // use 400 kHz I2C
   
   sensor.init();
-  panel.init();
+  //panel.init();
 
   servo_left.attach(PIN_SERVO_LEFT);
   servo_right.attach(PIN_SERVO_RIGHT);
@@ -47,17 +47,17 @@ void setup() {
 }
 
 void loop() {
-  panel.update();
+  //panel.update();
 
   if (sensor.dataReady()) {
     long currentDistance = sensor.getDistanceMm();
     Serial.println(currentDistance);
     if (currentDistance <= RANGE_TRESHOLD_MM) {
-      //sendToSlave(1);
+      sendToSlave(1);
       setWingState(WING_STATE_OPEN);
       //panel.activate();
     } else {
-      //sendToSlave(0);
+      sendToSlave(0);
       setWingState(WING_STATE_CLOSED);
       //panel.deactivate();
     }
@@ -76,11 +76,11 @@ void setWingState(uint8_t newState) {
     if (wingState == WING_STATE_OPEN) {
       servo_left.write(SERVO_LEFT_POS_OPEN);
       servo_right.write(SERVO_RIGHT_POS_OPEN);
-      panel.activate();
+      //panel.activate();
     } else {
       servo_left.write(SERVO_LEFT_POS_CLOSED);
       servo_right.write(SERVO_RIGHT_POS_CLOSED);
-      panel.deactivate();
+      //panel.deactivate();
     }
   }
 }
