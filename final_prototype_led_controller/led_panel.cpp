@@ -12,8 +12,8 @@ LEDPanel::LEDPanel(int ledPin, int pixelCount) {
 
 LEDPanel::init() {
     strip.begin();
-    strip.show();
-    //reset();
+    //strip.show();
+    reset();
 }
 
 LEDPanel::update() {
