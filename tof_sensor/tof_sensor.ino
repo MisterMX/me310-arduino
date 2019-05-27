@@ -11,6 +11,8 @@ VL53L1X sensor;
 void setup()
 {
   Serial.begin(115200);
+
+  delay(3000);
   Wire.begin();
   Wire.setClock(400000); // use 400 kHz I2C
 

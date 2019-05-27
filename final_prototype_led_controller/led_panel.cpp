@@ -26,7 +26,7 @@ LEDPanel::update() {
         ? LED_PANEL_INITIAL_FRAGMENT_POS
         : fragmentPosition + 1;
       
-      //render();
+      render();
 
       lastFrameTimeMs = currentTime;
     }
@@ -47,8 +47,8 @@ LEDPanel::render() {
 
 LEDPanel::reset() {
   fragmentPosition = LED_PANEL_INITIAL_FRAGMENT_POS;
-  //strip.fill(offColor, 0, pixelCount);
-  //strip.show();
+  strip.fill(offColor, 0, pixelCount);
+  strip.show();
 }
 
 LEDPanel::activate() {

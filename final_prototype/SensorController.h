@@ -1,12 +1,12 @@
 #include "Wire.h"
-extern "C" { 
-  #include "utility/twi.h"  // from Wire library, so we can do bus scanning
-}
-#include <VL53L1X.h>
 
 #define I2C_ADDR_MIN 0
 #define I2C_ADDR_MAX 128
 #define I2C_MAX_DEVICE_COUNT 4
+
+// Bad code af...
+#define LED_DISPLAY_I2C_ADDRESS 52
+#define MATRIX_I2C_ADDRESS 51
 
 struct RegisteredSensor {
   public:
