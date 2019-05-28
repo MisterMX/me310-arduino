@@ -13,7 +13,7 @@
 #define SERVO_LEFT_POS_CLOSED 0
 
 #define SERVO_RIGHT_POS_OPEN 0
-#define SERVO_RIGHT_POS_CLOSED 70
+#define SERVO_RIGHT_POS_CLOSED 75
 
 #define WING_STATE_UNDEF -1
 #define WING_STATE_OPEN 1
@@ -37,10 +37,8 @@ void setup()
   
   servo_left.attach(PIN_SERVO_LEFT);
   servo_right.attach(PIN_SERVO_RIGHT);
-  
-  setWingState(WING_STATE_CLOSED);
 
-  panel.activate();
+  setWingState(WING_STATE_CLOSED);
 }
 
 void loop() {
